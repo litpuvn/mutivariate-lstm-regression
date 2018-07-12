@@ -10,6 +10,7 @@ from sklearn.metrics import mean_squared_error
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
+import numpy as np
 
 
 # convert series to supervised learning
@@ -53,7 +54,8 @@ dataset = read_csv('data/pollution.csv', header=0, index_col=0)
 values = dataset.values
 # integer encode direction
 encoder = LabelEncoder()
-values[:, 4] = encoder.fit_transform(values[:, 4])
+wind_direction_vals = values[:, 4]
+values[:, 4] = encoder.fit_transform(wind_direction_vals)
 # ensure all data is float
 values = values.astype('float32')
 # normalize features
@@ -71,6 +73,10 @@ n_train_hours = 365 * 24
 train = values[:n_train_hours, :]
 test = values[n_train_hours:, :]
 # split into input and outputs
+
+# train_X is train without last column
+# train_Y is train with the last column only
+# -1 means that accessing column 1 count backward
 train_X, train_y = train[:, :-1], train[:, -1]
 test_X, test_y = test[:, :-1], test[:, -1]
 # reshape input to be 3D [samples, timesteps, features]
