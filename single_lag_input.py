@@ -14,6 +14,17 @@ from keras.layers import LSTM
 
 # convert series to supervised learning
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    """
+    	Frame a time series as a supervised learning dataset.
+    	Arguments:
+    		data: Sequence of observations as a list or NumPy array.
+    		n_in: Number of lag observations as input (X).
+    		n_out: Number of observations as output (y).
+    		dropnan: Boolean whether or not to drop rows with NaN values.
+    	Returns:
+    		Pandas DataFrame of series framed for supervised learning.
+    	"""
+
     n_vars = 1 if type(data) is list else data.shape[1]
     df = DataFrame(data)
     cols, names = list(), list()
@@ -49,7 +60,7 @@ values = values.astype('float32')
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(values)
 # frame as supervised learning
-reframed = series_to_supervised(scaled, 1, 1)
+reframed = series_to_supervised(scaled, n_in=1, n_out=1, dropnan=True)
 # drop columns we don't want to predict
 reframed.drop(reframed.columns[[9, 10, 11, 12, 13, 14, 15]], axis=1, inplace=True)
 print(reframed.head())
