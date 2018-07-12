@@ -74,7 +74,9 @@ train = values[:n_train_hours, :]
 test = values[n_train_hours:, :]
 # split into input and outputs
 
-# train_X is train without last column
+# train_X is train without last column which is the target at time t.
+# (we have other variables at time t-1 and target at time t-1)
+
 # train_Y is train with the last column only
 # -1 means that accessing column 1 count backward
 train_X, train_y = train[:, :-1], train[:, -1]
