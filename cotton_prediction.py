@@ -7,6 +7,10 @@ from pandas import concat
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import median_absolute_error
+from sklearn.metrics import mean_squared_log_error
+
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM, Activation
 import keras.backend as K
@@ -138,5 +142,9 @@ inv_y = concatenate((test_y, test_X[:, 1:]), axis=1)
 inv_y = scaler.inverse_transform(inv_y)
 inv_y = inv_y[:, 0]
 # calculate RMSE
+median_abs_error = median_absolute_error(inv_y, inv_yhat)
+msle = mean_squared_log_error(inv_y, inv_yhat)
+mse = mean_squared_error(inv_y, inv_yhat)
+mae = mean_absolute_error(inv_y, inv_yhat)
 rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
-print('Test RMSE: %.3f' % rmse)
+print('Test RMSE: %.3f, MSE %.3f, MAE %.3f, msle %.3f' % (rmse, mse, mae, msle))
