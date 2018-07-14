@@ -67,7 +67,7 @@ def create_no_attention_model(timesteps, input_dims):
     lstm_units = 100
 
     inputs = Input(shape=(timesteps, input_dims,))
-    lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
+    lstm_out = LSTM(units=lstm_units, return_sequences=False)(inputs)
 
     drop = Dropout(0.1)(lstm_out)
     dense_out = Dense(units=1)(drop)

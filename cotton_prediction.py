@@ -104,6 +104,7 @@ TIME_STEPS = train_X.shape[1]
 INPUT_DIM = train_X.shape[2]
 
 # deep network
+# model = create_no_attention_model(TIME_STEPS, INPUT_DIM)
 model = create_attention_model(TIME_STEPS, INPUT_DIM)
 
 model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mean_squared_error', r2_keras])
