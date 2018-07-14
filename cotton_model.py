@@ -15,6 +15,7 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, LSTM, Activation, Input
 import keras.backend as K
 from attention_utils import self_attention_3d_block
+from attention import Attention
 
 def create_simple_model(timesteps, input_dims):
     # design network
@@ -50,9 +51,28 @@ def create_attention_model(timesteps, input_dims, lstm_units=100):
     inputs = Input(shape=(timesteps, input_dims,))
     lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
 
-    attention_mul = self_attention_3d_block(lstm_out)
+    drop = Dropout(0.1)(lstm_out)
 
-    drop = Dropout(0.1)(attention_mul)
+    attention_mul = self_attention_3d_block(drop)
+
+    dense_out = Dense(units=1)(attention_mul)
+    activation = Activation("linear")(dense_out)
+
+    # output = Dense(INPUT_DIM, activation='sigmoid', name='output')(attention_mul)
+
+    model = Model(input=[inputs], output=activation)
+
+    return model
+
+def create_attention_layer_model(timesteps, input_dims, lstm_units=100):
+
+    inputs = Input(shape=(timesteps, input_dims,))
+    lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
+    drop = Dropout(0.1)(lstm_out)
+
+    merged = Attention(timesteps)(drop)
+
+    drop = Dropout(0.1)(merged)
     dense_out = Dense(units=1)(drop)
     activation = Activation("linear")(dense_out)
 
@@ -68,6 +88,8 @@ def create_no_attention_model(timesteps, input_dims, lstm_units=100):
     lstm_out = LSTM(units=lstm_units, return_sequences=False)(inputs)
 
     drop = Dropout(0.1)(lstm_out)
+    drop = Dropout(0.1)(drop) # to be fair with attention layer
+
     dense_out = Dense(units=1)(drop)
     activation = Activation("linear")(dense_out)
 
