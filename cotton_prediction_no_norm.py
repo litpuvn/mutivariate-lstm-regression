@@ -66,7 +66,7 @@ scaled = scaler.fit_transform(values)
 # frame as supervised learning
 # reframed = series_to_supervised(scaled, n_in=1, n_out=1, dropnan=True)
 
-reframed = DataFrame(scaled)
+reframed = DataFrame(values)
 # drop columns we don't want to predict
 # reframed.drop(reframed.columns[[9, 10, 11, 12, 13, 14, 15]], axis=1, inplace=True)
 # reframed.drop(reframed.columns[[14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]], axis=1, inplace=True)
@@ -75,8 +75,8 @@ print(reframed.head())
 n_train_hours = int(0.8 * len(values))
 my_train = values[:n_train_hours, :]
 my_test = values[n_train_hours:, :]
-my_train_X, my_train_y = my_train[:, 1:], my_train[:, 0]
-my_test_X, my_test_y = my_test[:, 1:], my_test[:, 0]
+my_train_X, my_train_y = my_train[:, 1:], my_train[:, 1]
+my_test_X, my_test_y = my_test[:, 1:], my_test[:, 1]
 # split into train and test sets
 values = reframed.values
 
@@ -129,16 +129,12 @@ pyplot.show()
 
 # make a prediction
 yhat = model.predict(test_X)
-test_X = test_X.reshape((test_X.shape[0], test_X.shape[2]))
-# invert scaling for forecast
-inv_yhat = concatenate((yhat, test_X), axis=1)
-inv_yhat = scaler.inverse_transform(inv_yhat)
-inv_yhat = inv_yhat[:, 0]
-# invert scaling for actual
+inv_yhat = yhat[:, 0]
+
 test_y = test_y.reshape((len(test_y), 1))
-inv_y = concatenate((test_y, test_X), axis=1)
-inv_y = scaler.inverse_transform(inv_y)
-inv_y = inv_y[:, 0]
+inv_y = test_y[:, 0]
+
+
 # calculate RMSE
 median_abs_error = median_absolute_error(inv_y, inv_yhat)
 msle = mean_squared_log_error(inv_y, inv_yhat)
