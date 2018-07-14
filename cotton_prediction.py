@@ -14,7 +14,7 @@ from sklearn.metrics import mean_squared_log_error
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM, Activation
 import keras.backend as K
-
+from cotton_model import *
 import numpy as np
 
 
@@ -99,25 +99,13 @@ def r2_keras(y_true, y_pred):
     return ( 1 - SS_res/(SS_tot + K.epsilon()) )
 
 
-# design network
-# model = Sequential()
-# model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-# model.add(Dense(1))
-# model.compile(loss='mae', optimizer='adam')
+
+TIME_STEPS = train_X.shape[1]
+INPUT_DIM = train_X.shape[2]
 
 # deep network
-model = Sequential()
-model.add(LSTM(units=100,
-               input_shape=(train_X.shape[1], train_X.shape[2]),
-               return_sequences=True
-               ))
-model.add(Dropout(0.1))
-model.add(LSTM(
-          units=50,
-          return_sequences=False))
-model.add(Dropout(0.1))
-model.add(Dense(units=1))
-model.add(Activation("linear"))
+model = create_attention_model(TIME_STEPS, INPUT_DIM)
+
 model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mean_squared_error', r2_keras])
 
 # fit network
