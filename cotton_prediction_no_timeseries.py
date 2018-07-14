@@ -111,9 +111,9 @@ INPUT_DIM = train_X.shape[2]
 lstm_units = 64
 # deep network
 # model = create_no_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
-#model = create_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+model = create_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 # model = create_attention_layer_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
-model = create_auto_encoder_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+# model = create_auto_encoder_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 # model = create_simple_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 
 model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mae', 'mean_squared_error', r2_keras])

@@ -85,7 +85,7 @@ def create_attention_model(timesteps, input_dims, lstm_units=100):
     inputs = Input(shape=(timesteps, input_dims,))
     lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
 
-    drop = Dropout(0.1)(lstm_out)
+    drop = Dropout(0.2)(lstm_out)
 
     attention_mul = self_attention_3d_block(drop)
 
@@ -102,11 +102,11 @@ def create_attention_layer_model(timesteps, input_dims, lstm_units=100):
 
     inputs = Input(shape=(timesteps, input_dims,))
     lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
-    drop = Dropout(0.1)(lstm_out)
+    # drop = Dropout(0.2)(lstm_out)
 
-    merged = Attention(timesteps)(drop)
+    merged = Attention(timesteps)(lstm_out)
 
-    drop = Dropout(0.1)(merged)
+    drop = Dropout(0.2)(merged)
     dense_out = Dense(units=1)(drop)
     activation = Activation("linear")(dense_out)
 
