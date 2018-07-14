@@ -16,6 +16,8 @@ from keras.layers import Dense, Dropout, LSTM, Activation, Input
 import keras.backend as K
 from attention_utils import self_attention_3d_block
 from attention import Attention
+from keras import initializers, regularizers, constraints
+
 
 def create_simple_model(timesteps, input_dims):
     # design network
@@ -45,6 +47,33 @@ def create_deep_model(timesteps, input_dims):
     model.add(Activation("linear"))
 
     return model
+
+def create_auto_encoder_model(timesteps, input_dims, lstm_units=100):
+    encoding_dim = 8
+
+    input_layer = Input(shape=(timesteps, input_dims,))
+
+    encoder = Dense(encoding_dim, activation="tanh",
+                    activity_regularizer=regularizers.l1(10e-5))(input_layer)
+    encoder = Dense(int(input_dims / 2), activation="relu")(encoder)
+
+    decoder = Dense(int(input_dims / 2), activation='tanh')(encoder)
+    decoder = Dense(input_dims, activation='relu')(decoder)
+
+
+    lstm_out = LSTM(units=lstm_units, return_sequences=False)(decoder)
+
+    drop = Dropout(0.1)(lstm_out)
+    drop = Dropout(0.1)(drop)
+
+    # attention_mul = self_attention_3d_block(drop)
+
+    dense_out = Dense(units=1)(drop)
+    outputs = Activation("linear")(dense_out)
+
+    autoencoder = Model(inputs=input_layer, outputs=outputs)
+
+    return autoencoder
 
 def create_attention_model(timesteps, input_dims, lstm_units=100):
 
