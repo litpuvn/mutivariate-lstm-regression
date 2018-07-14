@@ -19,11 +19,16 @@ from attention import Attention
 from keras import initializers, regularizers, constraints
 
 
-def create_simple_model(timesteps, input_dims):
+def create_simple_model(timesteps, input_dims, lstm_units=100):
     # design network
+
     model = Sequential()
-    model.add(LSTM(50, input_shape=(timesteps, input_dims)))
+    model.add(LSTM(units=lstm_units, input_shape=(timesteps, input_dims)))
+    model.add(Dropout(0.2))
+
     model.add(Dense(1))
+    model.add(Activation("linear"))
+
     model.compile(loss='mae', optimizer='adam')
 
     return model
@@ -49,7 +54,7 @@ def create_deep_model(timesteps, input_dims):
     return model
 
 def create_auto_encoder_model(timesteps, input_dims, lstm_units=100):
-    encoding_dim = 8
+    encoding_dim = 32
 
     input_layer = Input(shape=(timesteps, input_dims,))
 
@@ -63,8 +68,8 @@ def create_auto_encoder_model(timesteps, input_dims, lstm_units=100):
 
     lstm_out = LSTM(units=lstm_units, return_sequences=False)(decoder)
 
-    drop = Dropout(0.1)(lstm_out)
-    drop = Dropout(0.1)(drop)
+    drop = Dropout(0.2)(lstm_out)
+    # drop = Dropout(0.1)(drop)
 
     # attention_mul = self_attention_3d_block(drop)
 
