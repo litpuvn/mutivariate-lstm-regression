@@ -102,10 +102,10 @@ def r2_keras(y_true, y_pred):
 
 TIME_STEPS = train_X.shape[1]
 INPUT_DIM = train_X.shape[2]
-
+lstm_units = 64
 # deep network
-# model = create_no_attention_model(TIME_STEPS, INPUT_DIM)
-model = create_attention_model(TIME_STEPS, INPUT_DIM)
+model = create_no_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+#model = create_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 
 model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mean_squared_error', r2_keras])
 

@@ -45,8 +45,7 @@ def create_deep_model(timesteps, input_dims):
 
     return model
 
-def create_attention_model(timesteps, input_dims):
-    lstm_units = 100
+def create_attention_model(timesteps, input_dims, lstm_units=100):
 
     inputs = Input(shape=(timesteps, input_dims,))
     lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
@@ -63,8 +62,7 @@ def create_attention_model(timesteps, input_dims):
 
     return model
 
-def create_no_attention_model(timesteps, input_dims):
-    lstm_units = 100
+def create_no_attention_model(timesteps, input_dims, lstm_units=100):
 
     inputs = Input(shape=(timesteps, input_dims,))
     lstm_out = LSTM(units=lstm_units, return_sequences=False)(inputs)
