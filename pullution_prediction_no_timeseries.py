@@ -6,11 +6,15 @@ from pandas import DataFrame
 from pandas import concat
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import median_absolute_error
+from sklearn.metrics import mean_squared_log_error
+
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM, Activation
 import keras.backend as K
-
+from cotton_model import *
 import numpy as np
 
 
@@ -51,27 +55,31 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 
 
 # load dataset
-dataset = read_csv('data/pollution.csv', header=0, index_col=0)
+dataset = read_csv('data/pollution2.csv', header=0)
 values = dataset.values
-# integer encode direction
 encoder = LabelEncoder()
-wind_direction_vals = values[:, 4]
-values[:, 4] = encoder.fit_transform(wind_direction_vals)
+values[:,4] = encoder.fit_transform(values[:,4])
 # ensure all data is float
 values = values.astype('float32')
 # normalize features
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(values)
 # frame as supervised learning
-reframed = series_to_supervised(scaled, n_in=1, n_out=1, dropnan=True)
+# reframed = series_to_supervised(scaled, n_in=1, n_out=1, dropnan=True)
+
+reframed = DataFrame(scaled)
 # drop columns we don't want to predict
-reframed.drop(reframed.columns[[9, 10, 11, 12, 13, 14, 15]], axis=1, inplace=True)
+# reframed.drop(reframed.columns[[9, 10, 11, 12, 13, 14, 15]], axis=1, inplace=True)
+# reframed.drop(reframed.columns[[14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]], axis=1, inplace=True)
 print(reframed.head())
 
+n_train_hours = int(0.8 * len(values))
+my_train = values[:n_train_hours, :]
+my_test = values[n_train_hours:, :]
+my_train_X, my_train_y = my_train[:, 1:], my_train[:, 0]
+my_test_X, my_test_y = my_test[:, 1:], my_test[:, 0]
 # split into train and test sets
 values = reframed.values
-# n_train_hours = 365 * 24
-n_train_hours = int(0.8 * len(values))
 
 train = values[:n_train_hours, :]
 test = values[n_train_hours:, :]
@@ -82,8 +90,8 @@ test = values[n_train_hours:, :]
 
 # train_Y is train with the last column only
 # -1 means that accessing column 1 count backward
-train_X, train_y = train[:, :-1], train[:, -1]
-test_X, test_y = test[:, :-1], test[:, -1]
+train_X, train_y = train[:, 1:], train[:, 0]
+test_X, test_y = test[:, 1:], test[:, 0]
 # reshape input to be 3D [samples, timesteps, features]
 train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
 test_X = test_X.reshape((test_X.shape[0], 1, test_X.shape[1]))
@@ -98,29 +106,21 @@ def r2_keras(y_true, y_pred):
     return ( 1 - SS_res/(SS_tot + K.epsilon()) )
 
 
-# design network
-# model = Sequential()
-# model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-# model.add(Dense(1))
-# model.compile(loss='mae', optimizer='adam')
 
+TIME_STEPS = train_X.shape[1]
+INPUT_DIM = train_X.shape[2]
+lstm_units = 64
 # deep network
-model = Sequential()
-model.add(LSTM(units=100,
-               input_shape=(train_X.shape[1], train_X.shape[2]),
-               return_sequences=True
-               ))
-model.add(Dropout(0.1))
-model.add(LSTM(
-          units=50,
-          return_sequences=False))
-model.add(Dropout(0.1))
-model.add(Dense(units=1))
-model.add(Activation("linear"))
+# model = create_no_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+# model = create_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+# model = create_attention_layer_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+# model = create_auto_encoder_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+model = create_simple_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+
 model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mae', 'mean_squared_error', r2_keras])
 
 # fit network
-history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2,
+history = model.fit(train_X, train_y, epochs=200, batch_size=72, validation_data=(test_X, test_y), verbose=2,
                     shuffle=False)
 # plot history
 pyplot.plot(history.history['loss'], label='train')
@@ -132,16 +132,17 @@ pyplot.show()
 yhat = model.predict(test_X)
 test_X = test_X.reshape((test_X.shape[0], test_X.shape[2]))
 # invert scaling for forecast
-inv_yhat = concatenate((yhat, test_X[:, 1:]), axis=1)
+inv_yhat = concatenate((yhat, test_X), axis=1)
 inv_yhat = scaler.inverse_transform(inv_yhat)
 inv_yhat = inv_yhat[:, 0]
 # invert scaling for actual
 test_y = test_y.reshape((len(test_y), 1))
-inv_y = concatenate((test_y, test_X[:, 1:]), axis=1)
+inv_y = concatenate((test_y, test_X), axis=1)
 inv_y = scaler.inverse_transform(inv_y)
 inv_y = inv_y[:, 0]
 # calculate RMSE
-# rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
+median_abs_error = median_absolute_error(inv_y, inv_yhat)
+# msle = mean_squared_log_error(inv_y, inv_yhat)
 mse = mean_squared_error(inv_y, inv_yhat)
 mae = mean_absolute_error(inv_y, inv_yhat)
 rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
