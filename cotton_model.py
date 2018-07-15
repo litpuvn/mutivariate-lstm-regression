@@ -12,7 +12,7 @@ from sklearn.metrics import median_absolute_error
 from sklearn.metrics import mean_squared_log_error
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, LSTM, Activation, Input
+from keras.layers import Dense, Dropout, LSTM, Activation, Input, Flatten
 import keras.backend as K
 from attention_utils import self_attention_3d_block
 from attention import Attention
@@ -85,14 +85,33 @@ def create_attention_model(timesteps, input_dims, lstm_units=100):
     inputs = Input(shape=(timesteps, input_dims,))
     lstm_out = LSTM(units=lstm_units, return_sequences=True)(inputs)
 
-    drop = Dropout(0.2)(lstm_out)
+    attention_mul = self_attention_3d_block(lstm_out)
 
-    attention_mul = self_attention_3d_block(drop)
+    # lstm_out = LSTM(units=50, return_sequences=False)(attention_mul)
+    # drop = Dropout(0.1)(attention_mul)
 
-    dense_out = Dense(units=1)(attention_mul)
+    # attention_mul = Flatten()(attention_mul)
+    drop = Dropout(0.1)(attention_mul)
+
+    dense_out = Dense(units=1)(drop)
     activation = Activation("linear")(dense_out)
 
     # output = Dense(INPUT_DIM, activation='sigmoid', name='output')(attention_mul)
+
+    model = Model(input=[inputs], output=activation)
+
+    return model
+
+def create_attention_before_lstm_model(timesteps, input_dims, lstm_units=100):
+
+    inputs = Input(shape=(timesteps, input_dims,))
+    attention_mul = self_attention_3d_block(inputs)
+
+    lstm_out = LSTM(units=lstm_units, return_sequences=False)(attention_mul)
+
+    drop = Dropout(0.1)(lstm_out)
+    dense_out = Dense(units=1)(drop)
+    activation = Activation("linear")(dense_out)
 
     model = Model(input=[inputs], output=activation)
 

@@ -6,6 +6,8 @@ from keras.layers.core import *
 from keras.layers.recurrent import LSTM
 from keras.models import *
 
+from keras.backend import int_shape
+
 def attention_3d_block(inputs, time_steps=5):
     # inputs.shape = (batch_size, time_steps, input_dim)
     input_dim = int(inputs.shape[2])
@@ -39,6 +41,12 @@ def self_attention_3d_block(hidden_states):
     pre_activation = concatenate([context_vector, h_t], name='attention_output')
     attention_vector = Dense(128, use_bias=False, activation='tanh',
                              name='attention_vector')(pre_activation)
+
+
+    batch_size = int_shape(attention_vector)[0]
+    feature_size = int_shape(attention_vector)[1]
+
+    # return Reshape((-1, 1, feature_size))(attention_vector)
     return attention_vector
 
 # def model_attention_applied_after_lstm():

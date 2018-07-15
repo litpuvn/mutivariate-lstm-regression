@@ -56,6 +56,8 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 
 # load dataset
 dataset = read_csv('data/cotton.csv', header=0)
+dataset = dataset.sample(frac=1).reset_index(drop=True)
+
 values = dataset.values
 
 # ensure all data is float
@@ -111,10 +113,11 @@ INPUT_DIM = train_X.shape[2]
 lstm_units = 64
 # deep network
 # model = create_no_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
-model = create_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+# model = create_attention_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+# model = create_attention_before_lstm_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 # model = create_attention_layer_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 # model = create_auto_encoder_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
-# model = create_simple_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
+model = create_simple_model(TIME_STEPS, INPUT_DIM, lstm_units=lstm_units)
 
 model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mae', 'mean_squared_error', r2_keras])
 
